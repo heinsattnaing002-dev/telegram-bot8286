@@ -210,12 +210,7 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                 async with db_lock:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
-
-                                short_msg = f"🎉 `{code}` | {balance_display}"
-                                try:
-                                    await chat_obj.send_message(short_msg, parse_mode="Markdown")
-                                except:
-                                    pass
+                            
                             return True
                     context_data['expired'] += 1; return None
         except:
