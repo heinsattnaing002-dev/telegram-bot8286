@@ -202,20 +202,20 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                         balance_info = await get_balance_info(session_id)
                         if balance_info:
                             balance_display, plan_name = balance_info
-                            context_data['success_codes'].append({"code": code, "plan": plan_name, "balance": balance_display})
-                            context_data['hits'] += 1
+                            if not any(item['code'] == code for item in context_data['success_codes']):
+                                context_data['success_codes'].insert(0, {"code": code, "plan": plan_name, "balance": balance_display})
+                                context_data['hits'] += 1
 
-                            user_id = chat_obj.id
-                            async with db_lock:
-                                cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
-                                conn.commit()
+                                user_id = chat_obj.id
+                                async with db_lock:
+                                    cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
+                                    conn.commit()
 
-                            # Code နှင့် အချိန် (Balance) ကိုသာ အတိုချုပ် ပို့ပေးမည့် ပုံစံ
-                            short_msg = f"🎉 `{code}` | {balance_display}"
-                            try:
-                                await chat_obj.send_message(short_msg, parse_mode="Markdown")
-                            except:
-                                pass
+                                short_msg = f"🎉 `{code}` | {balance_display}"
+                                try:
+                                    await chat_obj.send_message(short_msg, parse_mode="Markdown")
+                                except:
+                                    pass
                             return True
                     context_data['expired'] += 1; return None
         except:
@@ -271,17 +271,25 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             proxy_count = len(PROXY_LIST) if PROXY_LIST else 0
             proxy_status = f"-1/{proxy_count}" if proxy_count > 0 else "0/0"
 
-            progress_pct = (checked_total / total_codes_count) * 100 if total_codes_count > 0 else 0
+            recent_hits = context.user_data.get('success_codes', [])[:25]
+            hits_text = ""
+            if recent_hits:
+                hits_text = "\n🔥 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
+
             text = (
+                f"Hz\n"
+                f"{session_url}\n"
                 f" **Scanner Running** \n"
-                f"- Progress: {progress_pct:.2f}%\n"
-                f"- Tried: {checked_total:,}/{total_codes_count:,}\n"
-                f"- Current Code: `{current_code}`\n"
-                f"- Hits: {hits}\n"
-                f"- Expired: {expired}\n"
-                f"- Limits: {retry_total}\n"
-                f"- Speed: {speed_cm:.1f} c/m\n"
-                f"- Proxies: {proxy_status}"
+                f"\n\n"
+                f" Tried: {checked_total:,}\n"
+                f" Current Code: {current_code}\n"
+                f" Hits: {hits}\n"
+                f" Expired: {expired}\n"
+                f" Limits: {retry_total}\n"
+                f" Speed: {speed_cm:.1f} c/m\n"
+                f" Proxies: {proxy_status}\n\n"
+                f"───────────────────────────────"
+                f"{hits_text}"
             )
             try:
                 await status_msg.edit_text(text, parse_mode="Markdown")
@@ -341,7 +349,7 @@ async def ask_code_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     context.user_data['waiting_for_code'] = True
-    await query.message.reply_text("🔑 ကျေးဇူးပြု၍ သင့်ထံတွင်ရှိသော Access Code ကို ဤချတ်ဘောက်စ်ထဲတွင် ရိုက်ထည့်ပေးပါရန်。", parse_mode="Markdown")
+    await query.message.reply_text("🔑 ကျေးဇူးပြု၍ သင့်ထံတွင်ရှိသော Access Code ကို ဤချတ်ဘောက်စ်ထဲတွင် ရိုက်ထည့်ပေးပါရန်။", parse_mode="Markdown")
 
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
