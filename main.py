@@ -284,9 +284,9 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
                 hits_text = "\n💯 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
 
             text = (
-                f"Hz\n"
+                f"𝐠𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
-                f"⚡ **Scanner Running** ⚡\n"
+                f" **Scanner Running** \n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
@@ -557,8 +557,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif mode == "7": total_codes_count = 10000000
         elif mode == "8": total_codes_count = 100000000
         elif mode == "9": total_codes_count = 1000000000
-        elif mode in ["alpha6", "mix6"]: total_codes_count = 300000
-        else: total_codes_count = 1000000
+        elif mode in ["alpha6", "mix6"]: total_codes_count = 30000000000
+        else: total_codes_count = 1000000000
 
         asyncio.create_task(run_scanner_background(query, session_url, mode, total_codes_count, context))
 
