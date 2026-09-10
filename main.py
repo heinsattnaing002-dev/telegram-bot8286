@@ -233,6 +233,7 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
     context.user_data['current_code'] = "000000"
 
     start_time = time.time()
+    last_edit_time = 0
     connector = aiohttp.TCPConnector(limit=CONNECTION_LIMIT, ttl_dns_cache=300)
     code_gen = code_generator(mode)
 
@@ -259,13 +260,19 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             await asyncio.sleep(0.01)
             if context.user_data.get('scan_stop', False): break
 
+            # Telegram Rate Limit မမိစေရန် ၁ စက္ကန့်မှ တစ်ကြိမ်သာ edit_text လုပ်မည်
+            current_time = time.time()
+            if current_time - last_edit_time < 1.0:
+                continue
+            last_edit_time = current_time
+
             checked_total = context.user_data.get('checked_total', 0)
             hits = context.user_data.get('hits', 0)
             expired = context.user_data.get('expired', 0)
             retry_total = context.user_data.get('retry_total', 0)
             current_code = context.user_data.get('current_code', '000000')
 
-            elapsed_time = time.time() - start_time
+            elapsed_time = current_time - start_time
             speed_cm = (checked_total / elapsed_time) * 60 if elapsed_time > 0 else 0
             
             proxy_count = len(PROXY_LIST) if PROXY_LIST else 0
@@ -274,13 +281,12 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             recent_hits = context.user_data.get('success_codes', [])[:25]
             hits_text = ""
             if recent_hits:
-                hits_text = "\n🔥 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
+                hits_text = "\n💯 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
 
             text = (
                 f"Hz\n"
                 f"{session_url}\n"
-                f" **Scanner Running** \n"
-                f"\n\n"
+                f"⚡ **Scanner Running** ⚡\n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
@@ -293,7 +299,8 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             )
             try:
                 await status_msg.edit_text(text, parse_mode="Markdown")
-            except: pass
+            except: 
+                pass
 
     except Exception as e:
         print(e)
@@ -303,7 +310,7 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
         hits_count = context.user_data.get('hits', 0)
         checked_count = context.user_data.get('checked_total', 0)
         try:
-            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ。\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
+            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ။\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
         except:
             pass
 
