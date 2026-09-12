@@ -313,7 +313,7 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
         hits_count = context.user_data.get('hits', 0)
         checked_count = context.user_data.get('checked_total', 0)
         try:
-            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ။\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
+            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ。\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
         except:
             pass
 
