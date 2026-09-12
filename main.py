@@ -29,63 +29,20 @@ ADMIN_USERNAME = "gobiln07"
 ADMIN_URL = f"https://t.me/{ADMIN_USERNAME}"
 TOKEN = "8792599284:AAGUwV6DWXcelkbHa9uGoRgyb00B5scN_XI"
 
-# Proxy List (50 Proxies Added)
+# Proxy List (10 Proxies Added)
 PROXY_LIST = [
-    # SOCKS5 Proxies (Fresh Batch)
-    "socks5://198.8.94.174:39078",
-    "socks5://110.235.252.74:1080",
-    "socks5://202.62.52.120:1080",
-    "socks5://82.193.116.160:21003",
-    "socks5://45.194.33.12:30001",
-    "socks5://220.158.232.118:1080",
-    "socks5://185.196.61.251:1080",
-    "socks5://38.49.210.79:40000",
-    "socks5://109.199.107.68:1080",
-    "socks5://124.248.177.44:1080",
-    "socks5://178.150.77.204:10801",
-    "socks5://212.3.127.242:10801",
-    "socks5://167.86.79.35:1080",
-    "socks5://59.152.97.233:1080",
-    "socks5://195.135.255.98:1080",
-    "socks5://101.36.104.239:10808",
-    "socks5://123.58.219.171:10808",
-    "socks5://147.45.60.136:1082",
-    "socks5://147.45.60.110:1082",
-    "socks5://83.147.216.208:1080",
-    "socks5://141.147.109.224:1080",
-    "socks5://47.238.236.151:5555",
-    "socks5://185.216.71.119:9150",
-    "socks5://103.131.215.221:10800",
-    "socks5://103.182.240.75:1080",
-
-    # HTTP / HTTPS Proxies (Fresh Batch)
-    "http://103.151.120.14:8080",
-    "http://182.253.114.52:8080",
-    "http://200.105.215.11:3128",
-    "http://185.162.231.73:80",
-    "http://185.162.228.119:80",
-    "http://13.212.163.219:54243",
-    "http://8.213.222.247:9090",
-    "http://47.250.159.65:9098",
-    "http://217.64.30.216:3128",
-    "http://195.158.2.130:3128",
-    "http://20.204.43.57:80",
-    "http://66.135.27.9:443",
-    "http://45.85.118.199:80",
-    "http://103.152.112.45:1080",
-    "http://185.199.229.156:1080",
-    "http://195.114.209.50:80",
-    "http://47.91.104.88:3128",
-    "http://118.179.93.216:9090",
-    "http://113.176.92.71:3128",
-    "http://206.123.156.200:9079",
-    "http://103.76.170.254:1080",
-    "http://192.252.208.67:14287",
-    "http://121.169.46.116:1090",
-    "http://202.79.27.12:1080",
-    "http://141.147.109.224:1080"
+    "http://bjbomyanb93f:qk339qwd4uyfspq@209.50.167.91:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@45.3.47.108:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@209.50.178.59:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@45.3.36.230:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@65.111.28.76:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@104.207.42.8:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@65.111.10.97:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@45.3.38.101:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@216.26.229.216:3129",
+    "http://bjbomyanb93f:qk339qwd4uyfspq@45.3.54.108:3129"
 ]
-proxy_pool = itertools.cycle(PROXY_LIST) if PROXY_LIST else None
+proxy_pool = iter'tools.cycle(PROXY_LIST) if PROXY_LIST else None
 
 # ── DATABASE SETUP ────────────────────────────────────────────────────────
 conn = sqlite3.connect('bot_database.db', check_same_thread=False)
