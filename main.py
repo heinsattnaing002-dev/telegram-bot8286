@@ -29,28 +29,36 @@ ADMIN_USERNAME = "gobiln07"
 ADMIN_URL = f"https://t.me/{ADMIN_USERNAME}"
 TOKEN = "8792599284:AAGUwV6DWXcelkbHa9uGoRgyb00B5scN_XI"
 
-# Proxy List (30 Proxies Added)
+# Proxy List (50 Proxies Added)
 PROXY_LIST = [
-    # SOCKS5 Proxies
-    "socks5://47.238.236.151:5555",
-    "socks5://202.79.27.12:1080",
-    "socks5://118.179.93.216:9090",
+    # SOCKS5 Proxies (Fresh Batch)
+    "socks5://198.8.94.174:39078",
+    "socks5://110.235.252.74:1080",
+    "socks5://202.62.52.120:1080",
+    "socks5://82.193.116.160:21003",
+    "socks5://45.194.33.12:30001",
+    "socks5://220.158.232.118:1080",
+    "socks5://185.196.61.251:1080",
+    "socks5://38.49.210.79:40000",
+    "socks5://109.199.107.68:1080",
+    "socks5://124.248.177.44:1080",
+    "socks5://178.150.77.204:10801",
+    "socks5://212.3.127.242:10801",
+    "socks5://167.86.79.35:1080",
+    "socks5://59.152.97.233:1080",
+    "socks5://195.135.255.98:1080",
+    "socks5://101.36.104.239:10808",
+    "socks5://123.58.219.171:10808",
+    "socks5://147.45.60.136:1082",
+    "socks5://147.45.60.110:1082",
+    "socks5://83.147.216.208:1080",
     "socks5://141.147.109.224:1080",
+    "socks5://47.238.236.151:5555",
     "socks5://185.216.71.119:9150",
     "socks5://103.131.215.221:10800",
     "socks5://103.182.240.75:1080",
-    "socks5://113.176.92.71:3128",
-    "socks5://206.123.156.200:9079",
-    "socks5://103.76.170.254:1080",
-    "socks5://192.252.208.67:14287",
-    "socks5://178.150.77.204:10801",
-    "socks5://121.169.46.116:1090",
-    "socks5://103.152.112.45:1080",
-    "socks5://185.199.229.156:1080",
 
-    # HTTP / HTTPS Proxies
-    "http://195.114.209.50:80",
-    "http://47.91.104.88:3128",
+    # HTTP / HTTPS Proxies (Fresh Batch)
     "http://103.151.120.14:8080",
     "http://182.253.114.52:8080",
     "http://200.105.215.11:3128",
@@ -63,7 +71,19 @@ PROXY_LIST = [
     "http://195.158.2.130:3128",
     "http://20.204.43.57:80",
     "http://66.135.27.9:443",
-    "http://45.85.118.199:80"
+    "http://45.85.118.199:80",
+    "http://103.152.112.45:1080",
+    "http://185.199.229.156:1080",
+    "http://195.114.209.50:80",
+    "http://47.91.104.88:3128",
+    "http://118.179.93.216:9090",
+    "http://113.176.92.71:3128",
+    "http://206.123.156.200:9079",
+    "http://103.76.170.254:1080",
+    "http://192.252.208.67:14287",
+    "http://121.169.46.116:1090",
+    "http://202.79.27.12:1080",
+    "http://141.147.109.224:1080"
 ]
 proxy_pool = itertools.cycle(PROXY_LIST) if PROXY_LIST else None
 
@@ -183,17 +203,17 @@ def code_generator(mode):
     elif mode == "7":
         codes = [str(i).zfill(7) for i in range(10000000)]
     elif mode == "8":
-        codes = [str(i).zfill(8) for i in range(100000000)]
+        codes = [str(i).zfill(8) for i in range(10000000)]
     elif mode == "9":
-        codes = [str(i).zfill(9) for i in range(1000000000)]
+        codes = [str(i).zfill(9) for i in range(10000000)]
     elif mode == "alpha6":
         chars = string.ascii_lowercase
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(100000000000)]
+        codes = [''.join(random.choices(chars, k=6)) for _ in range(10000000)]
     elif mode == "mix6":
         chars = string.ascii_lowercase + string.digits
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000000000000)]
+        codes = [''.join(random.choices(chars, k=6)) for _ in range(10000000)]
     else:
-        codes = [str(i).zfill(6) for i in range(10000000000000000000)]
+        codes = [str(i).zfill(6) for i in range(10000000)]
 
     random.shuffle(codes)
     for code in codes:
@@ -583,7 +603,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif mode == "7": total_codes_count = 10000000
         elif mode == "8": total_codes_count = 100000000
         elif mode == "9": total_codes_count = 1000000000
-        elif mode in ["alpha6", "mix6"]: total_codes_count = 3000000
+        elif mode in ["alpha6", "mix6"]: total_codes_count = 500000
         else: total_codes_count = 1000000
 
         asyncio.create_task(run_scanner_background(query, session_url, mode, total_codes_count, context))
