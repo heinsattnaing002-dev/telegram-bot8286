@@ -42,7 +42,7 @@ PROXY_LIST = [
     "http://bjbomyanb93f:qk339qwd4uyfspq@216.26.229.216:3129",
     "http://bjbomyanb93f:qk339qwd4uyfspq@45.3.54.108:3129"
 ]
-proxy_pool = iter'tools.cycle(PROXY_LIST) if PROXY_LIST else None
+proxy_pool = itertools.cycle(PROXY_LIST) if PROXY_LIST else None
 
 # ── DATABASE SETUP ────────────────────────────────────────────────────────
 conn = sqlite3.connect('bot_database.db', check_same_thread=False)
