@@ -29,13 +29,41 @@ ADMIN_USERNAME = "gobiln07"
 ADMIN_URL = f"https://t.me/{ADMIN_USERNAME}"
 TOKEN = "8792599284:AAGUwV6DWXcelkbHa9uGoRgyb00B5scN_XI"
 
-# Proxy List
+# Proxy List (30 Proxies Added)
 PROXY_LIST = [
+    # SOCKS5 Proxies
     "socks5://47.238.236.151:5555",
     "socks5://202.79.27.12:1080",
     "socks5://118.179.93.216:9090",
+    "socks5://141.147.109.224:1080",
+    "socks5://185.216.71.119:9150",
+    "socks5://103.131.215.221:10800",
+    "socks5://103.182.240.75:1080",
+    "socks5://113.176.92.71:3128",
+    "socks5://206.123.156.200:9079",
+    "socks5://103.76.170.254:1080",
+    "socks5://192.252.208.67:14287",
+    "socks5://178.150.77.204:10801",
+    "socks5://121.169.46.116:1090",
+    "socks5://103.152.112.45:1080",
+    "socks5://185.199.229.156:1080",
+
+    # HTTP / HTTPS Proxies
     "http://195.114.209.50:80",
-    "http://47.91.104.88:3128"
+    "http://47.91.104.88:3128",
+    "http://103.151.120.14:8080",
+    "http://182.253.114.52:8080",
+    "http://200.105.215.11:3128",
+    "http://185.162.231.73:80",
+    "http://185.162.228.119:80",
+    "http://13.212.163.219:54243",
+    "http://8.213.222.247:9090",
+    "http://47.250.159.65:9098",
+    "http://217.64.30.216:3128",
+    "http://195.158.2.130:3128",
+    "http://20.204.43.57:80",
+    "http://66.135.27.9:443",
+    "http://45.85.118.199:80"
 ]
 proxy_pool = itertools.cycle(PROXY_LIST) if PROXY_LIST else None
 
@@ -308,7 +336,7 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
         hits_count = context.user_data.get('hits', 0)
         checked_count = context.user_data.get('checked_total', 0)
         try:
-            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ。\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
+            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ။\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
         except:
             pass
 
@@ -555,7 +583,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif mode == "7": total_codes_count = 10000000
         elif mode == "8": total_codes_count = 100000000
         elif mode == "9": total_codes_count = 1000000000
-        elif mode in ["alpha6", "mix6"]: total_codes_count = 300000
+        elif mode in ["alpha6", "mix6"]: total_codes_count = 3000000
         else: total_codes_count = 1000000
 
         asyncio.create_task(run_scanner_background(query, session_url, mode, total_codes_count, context))
