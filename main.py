@@ -31,7 +31,11 @@ TOKEN = "8792599284:AAGUwV6DWXcelkbHa9uGoRgyb00B5scN_XI"
 
 # Proxy List
 PROXY_LIST = [
-    # "http://123.45.67.89:8080",
+    "socks5://47.238.236.151:5555",
+    "socks5://202.79.27.12:1080",
+    "socks5://118.179.93.216:9090",
+    "http://195.114.209.50:80",
+    "http://47.91.104.88:3128"
 ]
 proxy_pool = itertools.cycle(PROXY_LIST) if PROXY_LIST else None
 
