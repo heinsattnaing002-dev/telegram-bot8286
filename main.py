@@ -1,4 +1,4 @@
-import re
+Import re
 import json
 import base64
 import random
@@ -151,17 +151,17 @@ def code_generator(mode):
     elif mode == "7":
         codes = [str(i).zfill(7) for i in range(10000000)]
     elif mode == "8":
-        codes = [str(i).zfill(8) for i in range(100000000)]
+        codes = [str(i).zfill(8) for i in range(10000000)]
     elif mode == "9":
-        codes = [str(i).zfill(9) for i in range(100000000)]
+        codes = [str(i).zfill(9) for i in range(10000000)]
     elif mode == "alpha6":
         chars = string.ascii_lowercase
         codes = [''.join(random.choices(chars, k=6)) for _ in range(10000000)]
     elif mode == "mix6":
         chars = string.ascii_lowercase + string.digits
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000)]
+        codes = [''.join(random.choices(chars, k=6)) for _ in range(30000000)]
     else:
-        codes = [str(i).zfill(6) for i in range(1000000)]
+        codes = [str(i).zfill(6) for i in range(30000000)]
 
     random.shuffle(codes)
     for code in codes:
@@ -280,7 +280,7 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             text = (
                 f"𝐆𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
-                f" **Scanner Running** \n"
+                f" **Scanner Running**\n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
@@ -358,7 +358,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = message.text.strip()
 
     if context.user_data.get('waiting_for_code', False):
-        cursor.execute("SELECT duration_type, is_used FROM access_codes WHERE code = ?", (text,))
+        cursor.execute("SELECT duration_type, is_used FROM access_codes WHERE code = 500", (text,))
         row = cursor.fetchone()
 
         if row is None:
