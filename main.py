@@ -211,11 +211,6 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
 
-                                short_msg = f"🎉 `{code}` | {balance_display}"
-                                try:
-                                    await chat_obj.send_message(short_msg, parse_mode="Markdown")
-                                except:
-                                    pass
                             return True
                     context_data['expired'] += 1; return None
         except:
@@ -281,20 +276,19 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
             recent_hits = context.user_data.get('success_codes', [])[:25]
             hits_text = ""
             if recent_hits:
-                hits_text = "\n🔥 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}, ⏰ : 1 hr 0 min" for h in recent_hits])
+                hits_text = "\n💯 **Hit Codes:**\n" + "\n".join([f"`{h['code']}` 🎫 : {h['balance']}" for h in recent_hits])
 
             text = (
-                f"Hz\n"
+                f"𝐆𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
-                f"⚡ **Scanner Running** ⚡\n"
-                f"Thank for using By Telegram @MgRam\n\n"
-                f"🏹 Tried: {checked_total:,}\n"
-                f"🎯 Current Code: {current_code}\n"
-                f"⚔️ Hits: {hits}\n"
-                f"🗡️ Expired: {expired}\n"
-                f"⚠️ Limits: {retry_total}\n"
-                f"⚡ Speed: {speed_cm:.1f} c/m\n"
-                f"🔀 Proxies: {proxy_status}\n\n"
+                f" **Scanner Running** \n"
+                f" Tried: {checked_total:,}\n"
+                f" Current Code: {current_code}\n"
+                f" Hits: {hits}\n"
+                f" Expired: {expired}\n"
+                f" Limits: {retry_total}\n"
+                f" Speed: {speed_cm:.1f} c/m\n"
+                f" Proxies: {proxy_status}\n\n"
                 f"───────────────────────────────"
                 f"{hits_text}"
             )
