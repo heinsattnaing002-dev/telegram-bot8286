@@ -1,4 +1,4 @@
-Import re
+import re
 import json
 import base64
 import random
@@ -202,14 +202,20 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                         balance_info = await get_balance_info(session_id)
                         if balance_info:
                             balance_display, plan_name = balance_info
-                            if not any(item['code'] == code for item in context_data['success_codes']):
-                                context_data['success_codes'].insert(0, {"code": code, "plan": plan_name, "balance": balance_display})
-                                context_data['hits'] += 1
+                            user_id = chat_obj.id
+                            
+                            async with db_lock:
+                                # အရင်က စစ်ပြီးသား (Database ထဲရှိပြီးသား) ကုဒ်ဟုတ်မဟုတ် စစ်ဆေးခြင်း
+                                cursor.execute("SELECT COUNT(*) FROM found_codes_db WHERE code = ? AND user_id = ?", (code, user_id))
+                                exists_count = cursor.fetchone()[0]
 
-                                user_id = chat_obj.id
-                                async with db_lock:
+                                if exists_count == 0:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
+
+                                    if not any(item['code'] == code for item in context_data['success_codes']):
+                                        context_data['success_codes'].insert(0, {"code": code, "plan": plan_name, "balance": balance_display})
+                                        context_data['hits'] += 1
                             return True
                     context_data['expired'] += 1; return None
         except:
@@ -358,7 +364,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = message.text.strip()
 
     if context.user_data.get('waiting_for_code', False):
-        cursor.execute("SELECT duration_type, is_used FROM access_codes WHERE code = 500", (text,))
+        cursor.execute("SELECT duration_type, is_used FROM access_codes WHERE code = ?", (text,))
         row = cursor.fetchone()
 
         if row is None:
@@ -485,7 +491,8 @@ async def view_saved_codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else: await update.message.reply_text(msg)
         return
 
-    cursor.execute("SELECT code, plan, time_val FROM found_codes_db WHERE user_id = ? ORDER BY rowid DESC LIMIT 50", (user_id,))
+    # Saved Codes တွေကို အများဆုံး ၂၅၀ အထိ မြင်ရအောင် LIMIT 250 သို့ ပြောင်းထားပါသည်
+    cursor.execute("SELECT code, plan, time_val FROM found_codes_db WHERE user_id = ? ORDER BY rowid DESC LIMIT 250", (user_id,))
     rows = cursor.fetchall()
 
     if not rows:
