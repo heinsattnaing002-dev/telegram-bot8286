@@ -159,9 +159,9 @@ def code_generator(mode):
         codes = [''.join(random.choices(chars, k=6)) for _ in range(10000000)]
     elif mode == "mix6":
         chars = string.ascii_lowercase + string.digits
-        codes = [''.join(random.choices(chars, k=6)) for _ in range(30000000)]
+        codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000)]
     else:
-        codes = [str(i).zfill(6) for i in range(30000000)]
+        codes = [str(i).zfill(6) for i in range(3000000)]
 
     random.shuffle(codes)
     for code in codes:
@@ -210,6 +210,19 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                 async with db_lock:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
+
+                                # 💡 Hit (200) တွေ့တာနဲ့ သီးသန့် မက်ဆေ့ခ်ျ/comment အော်တိုပို့ပေးမည့် အပိုင်း
+                                try:
+                                    hit_msg = (
+                                        f" **New Hit Code Found! (200)**\n\n"
+                                        f" Code: `{code}`\n"
+                                        f" Plan: {plan_name}\n"
+                                        f"⏱ Balance: {balance_display}"
+                                    )
+                                    await chat_obj.send_message(hit_msg, parse_mode="Markdown")
+                                except Exception as e:
+                                    print(f"Auto comment error: {e}")
+
                             return True
                     context_data['expired'] += 1; return None
         except:
