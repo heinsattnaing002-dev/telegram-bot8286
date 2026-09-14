@@ -281,7 +281,6 @@ async def run_scanner_background(query, session_url, mode, total_codes_count, co
                 f"𝐆𝐨𝐛𝐥𝐢𝐧 𝐜𝐨𝐝𝐞 𝐡𝐚𝐜𝐤\n"
                 f"{session_url}\n"
                 f" **Scanner Running** \n"
-                f"Thank for using By Telegram @MgRam\n\n"
                 f" Tried: {checked_total:,}\n"
                 f" Current Code: {current_code}\n"
                 f" Hits: {hits}\n"
