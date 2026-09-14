@@ -151,9 +151,9 @@ def code_generator(mode):
     elif mode == "7":
         codes = [str(i).zfill(7) for i in range(10000000)]
     elif mode == "8":
-        codes = [str(i).zfill(8) for i in range(10000000)]
+        codes = [str(i).zfill(8) for i in range(100000000)]
     elif mode == "9":
-        codes = [str(i).zfill(9) for i in range(1000000000)]
+        codes = [str(i).zfill(9) for i in range(100000000)]
     elif mode == "alpha6":
         chars = string.ascii_lowercase
         codes = [''.join(random.choices(chars, k=6)) for _ in range(10000000)]
@@ -161,7 +161,7 @@ def code_generator(mode):
         chars = string.ascii_lowercase + string.digits
         codes = [''.join(random.choices(chars, k=6)) for _ in range(3000000)]
     else:
-        codes = [str(i).zfill(6) for i in range(100000)]
+        codes = [str(i).zfill(6) for i in range(1000000)]
 
     random.shuffle(codes)
     for code in codes:
