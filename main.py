@@ -27,7 +27,7 @@ MAX_CONCURRENT = 200
 CONNECTION_LIMIT = 200
 ADMIN_USERNAME = "gobiln07"
 ADMIN_URL = f"https://t.me/{ADMIN_USERNAME}"
-TOKEN = "8844626304:AAGTRtQRq6pLwEaUkWSwCb2eZaHVfl2RmA4"
+TOKEN = "8864755007:AAFgeXU_eJGVTnK_nb13NlIlzIblWiepgYg"
 
 # Proxy List
 PROXY_LIST = [
@@ -210,7 +210,6 @@ async def perform_check_silent(code, chat_obj, session_url, connector, context_d
                                 async with db_lock:
                                     cursor.execute("INSERT INTO found_codes_db (user_id, code, plan, time_val) VALUES (?, ?, ?, ?)", (user_id, code, plan_name, balance_display))
                                     conn.commit()
-
                             return True
                     context_data['expired'] += 1; return None
         except:
